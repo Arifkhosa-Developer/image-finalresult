@@ -1,0 +1,16 @@
+ #region GetCorporatActivityCountByDashboard
+
+ [HttpPost]
+ [Route("getcorporateactivitycountbydashboard")]
+
+ public async Task<IActionResult> GetCorporateActivityCountByDashboard([FromBody] GetActivitiesCountByDateRequest request)
+ {
+     var UserID = User.FindFirstValue("UserId");
+     var resultData = await _dashboardService.GetCorporateActivityCountByDashboard(request, UserID);
+     //No list handling
+     return resultData != null
+           ? Ok(new { StatusCode = StatusCodes.Status200OK, Message = "Corporate Dashboard data successfully fetched", result = resultData })
+          : Ok(new { StatusCode = StatusCodes.Status409Conflict, Message = "Corporate Dashboard data does not exist", result = resultData });
+
+ }
+ #endregion
