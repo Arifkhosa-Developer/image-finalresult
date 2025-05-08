@@ -1,0 +1,67 @@
+ #region GetCorporateActivityCountByDashboard
+
+ public async Task<GetCorporateDashboardCountResponse> GetCorporateActivityCountByDashboard(GetActivitiesCountByDateRequest request, string UserID)
+ {
+     StringBuilder Cwhere = new StringBuilder();
+
+     using (var con = _dbDapperContext.CreateConnection())
+     {
+        
+         //if (request.TeamID > 0)
+         //{
+         //    Cwhere.Append(" and aD.DRPTeamID=" + request.TeamID);
+         //}
+
+         //if (request.RoleID != 1009)
+         //{
+         //    if (request.RoleID == 1014)
+         //    {
+         //        var teamID = await _dbContext.MfrTeamEmployee
+         //        .Where(c => c.EmployeeID == request.EmployeeID)
+         //        .Select(c => c.TeamID)
+         //        .FirstOrDefaultAsync();
+
+         //        if (teamID != null && teamID > 0)
+         //        {
+         //            Cwhere.Append(" and aD.DRPTeamID=" + teamID);
+         //        }
+         //    }
+         //    else
+         //    {
+         //        if (request.CountryID == 1)
+         //        {
+         //            Cwhere.Append(" and don.TehsilID=" + request.TehsilID);
+         //        }
+         //        else
+         //        {
+         //            Cwhere.Append(" AND don.TehsilID IN (SELECT ut.TehsilID FROM SecUserMfrTehsil ut WHERE ut.UserID=" + UserID + " ) ");
+
+         //        }
+
+         //    }
+         //}
+         //else
+         //{
+         //    if (request.ShowAllData == false)
+         //    {
+         //        if (request.CountryID == 1)
+         //        {
+         //            Cwhere.Append(" and don.TehsilID=" + request.TehsilID);
+         //        }
+         //        else
+         //        {
+         //            Cwhere.Append(" AND don.TehsilID IN (SELECT ut.TehsilID FROM SecUserMfrTehsil ut WHERE ut.UserID=" + UserID + " ) ");
+
+         //        }
+         //    }
+         //}
+
+
+         DynamicParameters para = new DynamicParameters();
+         //para.Add("@SDateFrom", request.SDateFrom);
+         //para.Add("@SDateTo", request.SDateTo);
+         para.Add("@Cwhere", Cwhere.ToString());
+         //para.Add("@BusinessID", request.BusinessID);
+         var result = await con.QueryFirstOrDefaultAsync<GetCorporateDashboardCountResponse>("USP_MfrActivityDetail_GetCorporateDashboardCount", para, commandType: CommandType.StoredProcedure);
+         return result;
+       
