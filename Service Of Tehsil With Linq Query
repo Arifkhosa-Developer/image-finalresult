@@ -1,0 +1,17 @@
+  public async Task<List<GetTehsilByActiveListResponse>> GetTehsilsByCountryId(string countryID, string businessID)
+  {
+      int countryId = Decrypt<int>(countryID);
+      int businessId = Decrypt<int>(businessID);
+
+      var tehsils = await _dbContext.MfrTehsil.Where(t => t.CountryID == countryId && t.BusinessID == businessId && t.IsActive == true)
+          .Select(t => new GetTehsilByActiveListResponse
+          {
+              MfrTehsilIDHash = Encrypt(t.TehsilID),
+              MfrTehsilCode = t.TehsilCode,
+              MfrTehsilName = t.TehsilName,
+          })
+
+          .ToListAsync();
+
+      return tehsils;
+  }
