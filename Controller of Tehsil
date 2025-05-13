@@ -1,0 +1,15 @@
+ [HttpGet]
+ [Route("gettehsilsbycountryid/{countryid}/{businessid}")]
+ public async Task<IActionResult> GetTehsilsByCountryId([Required(ErrorMessage = "countryid is required")] string countryid,[Required(ErrorMessage = "businessid is required")] string businessid)
+ {
+     var resultData = await _tehsilService.GetTehsilsByCountryId(countryid,businessid);
+     //No list handling
+     if (resultData.ToList().Count > 0)
+     {
+         return Ok(new { StatusCode = StatusCodes.Status200OK, Message = "City list successfully fetched", result = resultData });
+     }
+     else
+     {
+         return Ok(new { StatusCode = StatusCodes.Status409Conflict, Message = "City data does not exist", result = resultData });
+     }
+ }
