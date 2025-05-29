@@ -1,0 +1,218 @@
+// This is Controller
+  [HttpGet]
+  [Route("gettehsilsbycountryid/{countryid}/{businessid}")]
+  public async Task<IActionResult> GetTehsilsByCountryId([Required(ErrorMessage = "countryid is required")] string countryid, [Required(ErrorMessage = "businessid is required")] string businessid)
+  {
+      var resultData = await _tehsilService.GetTehsilsByCountryId(countryid, businessid);
+      if (resultData.ToList().Count > 0)
+      {
+          return Ok(new { StatusCode = StatusCodes.Status200OK, Message = "City list successfully fetched", result = resultData });
+      }
+      else
+      {
+          return Ok(new { StatusCode = StatusCodes.Status409Conflict, Message = "City data does not exist", result = resultData });
+      }
+  }
+// Now this is Service
+  public async Task<List<GetTehsilByActiveListResponse>> GetTehsilsByCountryId(string countryID, string businessID)
+  {
+      int countryId = Decrypt<int>(countryID);
+      int businessId = Decrypt<int>(businessID);
+    
+
+      var tehsils = await _dbContext.MfrTehsil.Where(t => t.CountryID == countryId && t.BusinessID == businessId && t.IsActive == true)
+          .Select(t => new GetTehsilByActiveListResponse
+          {
+              MfrTehsilIDHash = Encrypt(t.TehsilID),
+              MfrTehsilCode = t.TehsilCode,
+              MfrTehsilName = t.TehsilName,
+          })
+
+          .ToListAsync();
+
+      return tehsils;
+  }
+// Now this is Interface
+ Task<List<GetTehsilByActiveListResponse>> GetTehsilsByCountryId(string CountryID, string businessID);
+
+// Now this is Model
+using System.ComponentModel.DataAnnotations;
+
+namespace SetupService.Model.MarketingProject
+{
+    public class MFRTehsil
+    {
+        [Key]
+        public int TehsilID { get; set; }
+        public string TehsilCode { get; set; }
+        public string TehsilName { get; set; }
+        public string ShortName { get; set; }
+        public string D365Ref { get; set; }
+        public int CountryID { get; set; }
+        public int? RegionID { get; set; }
+        public int? ProvinceID { get; set; }
+        public int? DivisionID { get; set; }
+        public int? DistrictID { get; set; }
+        public string FocalPersonName { get; set; }
+        public string FocalPersonMob { get; set; }
+        public bool? IsActive { get; set; }
+        public int BusinessID { get; set; }
+        public int? InsertedBy { get; set; }
+        public DateTime? InsertedDate { get; set; }
+        public string InsertedUIP { get; set; }
+        public int? UpdatedBy { get; set; }
+        public DateTime? UpdatedDate { get; set; }
+        public string UpdatedUIP { get; set; }
+    }
+}
+
+// Now We Move Request and Response Model
+// This is first Request and i saw only on request from front end 
+// Request 
+using CommonService.Utility;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace SetupService.Service.MarketingProject.MfrTehsil.Request
+{
+    public class SaveMfrTehsilRequest : BaseResponse
+    {
+        public string TehsilIDHash { get; set; }
+        [JsonIgnore]
+        public int TehsilID { get { return Decrypt<int>(TehsilIDHash); } set { TehsilIDHash = Encrypt(value); } }
+        [Required(ErrorMessage = "Tehsil name is required")]
+        public string TehsilName { get; set; }
+        public string ShortName { get; set; }
+        public string D365Ref { get; set; }
+        [Required(ErrorMessage = "Please select Country")]
+        public string CountryIDHash { get; set; }
+        [JsonIgnore]
+        public int CountryID { get { return Decrypt<int>(CountryIDHash); } set { CountryIDHash = Encrypt(value); } }
+        [Required(ErrorMessage = "Please select Province")]
+        public string ProvinceIDHash { get; set; }
+        [JsonIgnore]
+        public int ProvinceID { get { return Decrypt<int>(ProvinceIDHash); } set { ProvinceIDHash = Encrypt(value); } }
+        public string DivisionIDHash { get; set; }
+        [JsonIgnore]
+        public int DivisionID { get { return Decrypt<int>(DivisionIDHash); } set { DivisionIDHash = Encrypt(value); } }
+        public string RegionIDHash { get; set; }
+        [JsonIgnore]
+        public int RegionID { get { return Decrypt<int>(RegionIDHash); } set { RegionIDHash = Encrypt(value); } }
+        public string DistrictIDHash { get; set; }
+        [JsonIgnore]
+        public int DistrictID { get { return Decrypt<int>(DistrictIDHash); } set { DistrictIDHash = Encrypt(value); } }
+        public string FocalPersonName { get; set; }
+        public string FocalPersonMob { get; set; }
+        public bool? IsActive { get; set; } = true;
+        [Required(ErrorMessage = "Business is required")]
+        public string BusinessIDHash { get; set; }
+        [JsonIgnore]
+        public int? BusinessID { get { return Decrypt<int>(BusinessIDHash); } set { BusinessIDHash = Encrypt(value); } }
+    }
+}
+// Response 1
+// Now Responses are here 
+//GetCountryByTehsilIDResponse
+using CommonService.Utility;
+using System.Text.Json.Serialization;
+
+namespace SetupService.Service.MarketingProject.MfrTehsil.Response
+{
+    public class GetCountryByTehsilIDResponse : BaseResponse
+    {
+        public string CountryIDHash { get; set; }
+        [JsonIgnore]
+        public int CountryID { get { return Decrypt<int>(CountryIDHash); } set { CountryIDHash = Encrypt(value); } }
+        public string CountryName { get; set; }
+       
+    }
+}
+// Response 2
+//GetTehsilByActiveListResponse 
+using CommonService.Utility;
+using System.Text.Json.Serialization;
+
+namespace SetupService.MarketingProject.MfrTehsil.Response
+{
+    public class GetTehsilByActiveListResponse : BaseResponse
+    {
+        public string MfrTehsilIDHash { get; set; }
+        [JsonIgnore]
+        public int MfrTehsilID { get { return Decrypt<int>(MfrTehsilIDHash); } set { MfrTehsilIDHash = Encrypt(value); } }
+        public string MfrTehsilCode { get; set; }
+        public string MfrTehsilName { get; set; }
+    }
+}
+// Response 3
+//GetTehsilBySearchListResponse
+using CommonService.Utility;
+using System.Text.Json.Serialization;
+
+namespace SetupService.Service.MarketingProject.MfrTehsil.Response
+{
+    public class GetTehsilBySearchListResponse : BaseResponse
+    {
+        public string TehsilIDHash { get; set; }
+        [JsonIgnore]
+        public int TehsilID { get { return Decrypt<int>(TehsilIDHash); } set { TehsilIDHash = Encrypt(value); } }
+        public string TehsilCode { get; set; }
+        public string TehsilName { get; set; }
+        public string ShortName { get; set; }
+        public string CountryIDHash { get; set; }
+        [JsonIgnore]
+        public int CountryID { get { return Decrypt<int>(CountryIDHash); } set { CountryIDHash = Encrypt(value); } }
+        public string CountryName { get; set; }
+        public string ProvinceIDHash { get; set; }
+        [JsonIgnore]
+        public int ProvinceID { get { return Decrypt<int>(ProvinceIDHash); } set { ProvinceIDHash = Encrypt(value); } }
+        public string ProvinceName { get; set; }
+        //public string DivisionIDHash { get; set; }
+        //[JsonIgnore]
+        //public int DivisionID { get { return Decrypt<int>(DivisionIDHash); } set { DivisionIDHash = Encrypt(value); } }
+        //public string DivisionName { get; set; }
+        public string RegionIDHash { get; set; }
+        [JsonIgnore]
+        public int RegionID { get { return Decrypt<int>(RegionIDHash); } set { RegionIDHash = Encrypt(value); } }
+        public string RegionName { get; set; }
+        //public string DistrictIDHash { get; set; }
+        //[JsonIgnore]
+        //public int DistrictID { get { return Decrypt<int>(DistrictIDHash); } set { DistrictIDHash = Encrypt(value); } }
+        //public string DistrictName { get; set; }
+        public bool IsActive { get; set; }
+        public int RowNum { get; set; }
+        public int Total { get; set; }
+    }
+}
+//Response 4)
+//GetTehsilByTehsilIDResponse
+using CommonService.Utility;
+using System.Text.Json.Serialization;
+
+namespace SetupService.Service.MarketingProject.MfrTehsil.Response
+{
+    public class GetTehsilByTehsilIDResponse : BaseResponse
+    {
+        public string TehsilIDHash { get; set; }
+        [JsonIgnore]
+        public int TehsilID { get { return Decrypt<int>(TehsilIDHash); } set { TehsilIDHash = Encrypt(value); } }
+        public string TehsilCode { get; set; }
+        public string TehsilName { get; set; }
+        public string D365Ref { get; set; }
+        public string CountryIDHash { get; set; }
+        [JsonIgnore]
+        public int CountryID { get { return Decrypt<int>(CountryIDHash); } set { CountryIDHash = Encrypt(value); } }
+        public string ProvinceIDHash { get; set; }
+        [JsonIgnore]
+        public int ProvinceID { get { return Decrypt<int>(ProvinceIDHash); } set { ProvinceIDHash = Encrypt(value); } }
+        public string RegionIDHash { get; set; }
+        [JsonIgnore]
+        public int RegionID { get { return Decrypt<int>(RegionIDHash); } set { RegionIDHash = Encrypt(value); } }
+        public string FocalPersonName { get; set; }
+        public string FocalPersonMob { get; set; }
+        public bool? IsActive { get; set; }
+        public string BusinessIDHash { get; set; }
+        [JsonIgnore]
+        public int? BusinessID { get { return Decrypt<int>(BusinessIDHash); } set { BusinessIDHash = Encrypt(value); } }
+    }
+}
+
